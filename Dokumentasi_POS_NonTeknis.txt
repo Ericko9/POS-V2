@@ -1,0 +1,549 @@
+================================================================
+         DOKUMENTASI SISTEM POINT OF SALE (POS)
+              Manajemen Toko Retail & Distribusi
+      Panduan Pengguna & Deskripsi Proses Bisnis
+================================================================
+Versi Dokumen : 1.0
+Tanggal       : Mei 2026
+Diperuntukkan : Pengguna Umum, Pemilik Toko, Manajemen
+Sifat         : Non-Teknis
+================================================================
+
+
+================================================================
+DAFTAR ISI
+================================================================
+1. Pendahuluan
+2. Fitur-Fitur Utama
+3. Proses Bisnis
+4. Hak Akses Pengguna
+5. Konsep Penting dalam Sistem
+6. Pertanyaan yang Sering Diajukan (FAQ)
+7. Glosarium
+================================================================
+
+
+================================================================
+1. PENDAHULUAN
+================================================================
+
+Sistem POS (Point of Sale) ini adalah aplikasi manajemen toko
+berbasis web yang dirancang untuk membantu pemilik toko dan staf
+kasir dalam mengelola kegiatan operasional sehari-hari secara
+digital. Sistem ini dapat diakses melalui browser dari komputer
+maupun perangkat mobile tanpa perlu instalasi khusus.
+
+----------------------------------------------------------------
+1.1 Tujuan Sistem
+----------------------------------------------------------------
+Sistem ini hadir untuk menggantikan pencatatan manual yang rentan
+terhadap kesalahan dan sulit dilacak. Dengan sistem ini, seluruh
+transaksi penjualan, pengelolaan stok, hingga laporan keuangan
+dapat dilakukan secara terpusat dan real-time.
+
+----------------------------------------------------------------
+1.2 Siapa yang Menggunakan Sistem Ini?
+----------------------------------------------------------------
+Sistem memiliki dua jenis pengguna dengan hak akses berbeda:
+
+  ADMIN / PEMILIK
+  - Mengelola seluruh sistem, melihat laporan, mengatur produk
+    dan kasir.
+  - Contoh kegiatan: tambah barang baru, lihat laporan laba,
+    atur data supplier.
+
+  KASIR
+  - Melayani transaksi penjualan dan pengelolaan nota.
+  - Contoh kegiatan: buat nota penjualan, cetak faktur, proses
+    retur barang.
+
+
+================================================================
+2. FITUR-FITUR UTAMA
+================================================================
+
+----------------------------------------------------------------
+2.1 Dashboard
+----------------------------------------------------------------
+Halaman utama yang ditampilkan saat pertama kali masuk ke sistem.
+Dashboard memberikan ringkasan kondisi toko secara real-time.
+
+  * Ringkasan Penjualan
+    Menampilkan total penjualan hari ini, minggu ini, dan bulan
+    berjalan.
+
+  * Stok Menipis
+    Peringatan otomatis untuk barang yang stoknya sudah di bawah
+    batas minimum yang ditentukan.
+
+  * Transaksi Terbaru
+    Daftar nota penjualan yang baru saja dibuat, lengkap dengan
+    nama pelanggan dan total harga.
+
+  * Grafik Penjualan
+    Visualisasi data penjualan dalam bentuk grafik agar lebih
+    mudah dipahami.
+
+----------------------------------------------------------------
+2.2 Manajemen Barang (Produk)
+----------------------------------------------------------------
+Modul untuk mengelola semua produk yang dijual di toko.
+Hanya dapat diakses oleh Admin.
+
+  * Daftar Produk
+    Melihat semua barang yang ada, dilengkapi informasi harga,
+    stok, grade, dan kategori.
+
+  * Tambah / Edit Produk
+    Menambahkan barang baru atau mengubah informasi barang yang
+    sudah ada.
+
+  * Stok Bagus & Stok Rusak
+    Sistem memisahkan pencatatan antara barang dalam kondisi baik
+    dan barang yang rusak atau cacat.
+
+  * Grade Barang
+    Setiap barang dapat diberi label grade (misalnya A, B, C)
+    untuk menggambarkan kualitasnya.
+
+  * Batas Minimum Stok
+    Admin menetapkan batas minimum stok per barang. Sistem akan
+    memberi peringatan jika stok mendekati batas tersebut.
+
+  * Program Promo / Diskon
+    Admin dapat mengatur diskon per barang dengan menentukan
+    besaran potongan harga, tanggal mulai, dan tanggal berakhir.
+    Diskon aktif secara otomatis.
+
+  * Jumlah Terjual
+    Setiap barang otomatis mencatat berapa unit yang telah
+    terjual secara kumulatif.
+
+  * Kategori Produk
+    Setiap barang dikelompokkan ke dalam kategori untuk
+    memudahkan pencarian dan analisis.
+
+----------------------------------------------------------------
+2.3 Manajemen Kategori
+----------------------------------------------------------------
+Kategori digunakan untuk mengelompokkan produk. Misalnya:
+"Elektronik", "Pakaian", "Makanan", dan sebagainya. Admin dapat
+menambah, mengubah, dan menghapus kategori sesuai kebutuhan.
+
+----------------------------------------------------------------
+2.4 Manajemen Supplier (Pemasok)
+----------------------------------------------------------------
+Modul untuk menyimpan dan mengelola data pemasok yang bekerja
+sama dengan toko. Hanya dapat diakses oleh Admin.
+
+  * Data Kontak Supplier
+    Menyimpan nama, alamat, nomor telepon, dan email supplier.
+
+  * Catatan Kinerja
+    Admin dapat menambahkan catatan penilaian kinerja untuk
+    setiap supplier (ketepatan pengiriman, kualitas barang, dll).
+
+  * Detail & Riwayat
+    Melihat detail lengkap supplier beserta riwayat pasokan
+    barang yang pernah diterima.
+
+----------------------------------------------------------------
+2.5 Nota / Transaksi Penjualan
+----------------------------------------------------------------
+Inti dari sistem POS. Modul ini digunakan untuk mencatat dan
+mengelola setiap transaksi penjualan kepada pelanggan.
+
+  * Buat Nota Penjualan
+    Kasir membuat nota baru dengan memilih barang, memasukkan
+    jumlah, dan mengisi data pelanggan. Sistem otomatis
+    menghitung total harga termasuk diskon yang sedang aktif.
+
+  * Nomor Nota Unik
+    Setiap nota mendapat nomor unik secara otomatis untuk
+    kemudahan pelacakan.
+
+  * Multi Item per Nota
+    Satu nota dapat memuat banyak jenis barang sekaligus.
+
+  * Data Pelanggan
+    Setiap nota mencatat nama, nomor HP, dan alamat pelanggan.
+
+  * Cetak Nota / Faktur
+    Nota yang sudah dibuat dapat dicetak sebagai faktur untuk
+    diberikan kepada pelanggan.
+
+  * Cetak Surat Jalan
+    Tersedia fitur cetak surat jalan untuk barang yang perlu
+    dikirim ke alamat pelanggan.
+
+  * Cetak Gabungan
+    Mencetak nota dan surat jalan sekaligus dalam satu dokumen.
+
+  * Status Pengiriman
+    Setiap nota memiliki status pengiriman yang dapat diperbarui
+    untuk menandai apakah barang sudah dikirim atau belum.
+
+  * Catatan Tambahan
+    Kasir dapat menambahkan catatan khusus pada setiap nota.
+
+  * Daftar Nota
+    Melihat semua nota yang pernah dibuat, dengan filter
+    pencarian berdasarkan tanggal, nomor nota, atau nama
+    pelanggan.
+
+  [!] CATATAN: Saat nota dibuat, stok barang yang dijual akan
+  berkurang otomatis. Jika nota dihapus atau ada retur, stok
+  akan disesuaikan kembali.
+
+----------------------------------------------------------------
+2.6 Retur Barang
+----------------------------------------------------------------
+Fitur retur digunakan ketika pelanggan mengembalikan barang
+yang sudah dibeli.
+
+  * Proses Retur
+    Kasir memilih nota asli, lalu memilih barang mana yang
+    diretur beserta jumlahnya.
+
+  * Kondisi Barang Retur
+    Barang retur dibedakan antara kondisi "Bagus" (masuk kembali
+    ke stok bagus) dan "Rusak" (masuk ke stok rusak).
+
+  * Alasan Retur
+    Setiap retur wajib disertai alasan, untuk catatan dan
+    evaluasi.
+
+  * Nilai Pengembalian
+    Sistem otomatis menghitung nilai uang yang harus dikembalikan.
+    Pengembalian uang hanya berlaku untuk barang kondisi bagus.
+
+  * Riwayat Retur
+    Admin dan kasir dapat melihat semua riwayat retur.
+
+----------------------------------------------------------------
+2.7 Manajemen Kasir
+----------------------------------------------------------------
+Modul khusus Admin untuk mengelola akun-akun kasir di toko.
+
+  * Tambah Kasir Baru
+    Admin membuat akun kasir baru dengan nama, username, dan
+    password.
+
+  * Edit Data Kasir
+    Mengubah informasi kasir, termasuk nomor HP, email, dan
+    catatan.
+
+  * Nonaktifkan Kasir
+    Admin dapat menghapus akun kasir yang sudah tidak bekerja.
+
+  * Detail Kasir
+    Melihat profil dan riwayat transaksi kasir tertentu.
+
+----------------------------------------------------------------
+2.8 Analisis & Laporan
+----------------------------------------------------------------
+Modul ini hanya dapat diakses oleh Admin, menyediakan berbagai
+laporan dan grafik untuk pengambilan keputusan bisnis.
+
+  * Analisis Pendapatan
+    Laporan total pendapatan dalam periode tertentu (harian,
+    bulanan, atau rentang tanggal kustom), dilengkapi
+    perbandingan dengan periode sebelumnya.
+
+  * Analisis per Kategori
+    Laporan penjualan dikelompokkan berdasarkan kategori produk,
+    untuk mengetahui kategori mana yang paling laku.
+
+  * Analisis Pelanggan
+    Menampilkan pelanggan dengan pembelian terbanyak atau
+    tertinggi nilainya.
+
+  * Analisis Laba
+    Memperlihatkan perkiraan laba bersih dari seluruh penjualan.
+
+  * Export ke Excel
+    Laporan dapat diekspor ke file Excel untuk arsip atau
+    analisis lebih lanjut.
+
+  * Export ke PDF
+    Laporan juga dapat disimpan dalam format PDF.
+
+  * Grafik Visual
+    Data disajikan dalam bentuk grafik batang dan grafik garis.
+
+----------------------------------------------------------------
+2.9 Profil Toko & Akun Pengguna
+----------------------------------------------------------------
+  * Profil Toko
+    Admin dapat mengisi dan memperbarui informasi toko seperti
+    nama toko, alamat, dan nomor kontak yang akan muncul di
+    nota cetak.
+
+  * Profil Pengguna
+    Setiap pengguna dapat melihat dan memperbarui data profilnya
+    sendiri, termasuk mengganti password.
+
+
+================================================================
+3. PROSES BISNIS
+================================================================
+
+----------------------------------------------------------------
+3.1 Alur Penjualan (Transaksi Kasir)
+----------------------------------------------------------------
+Alur lengkap proses penjualan dari awal hingga selesai:
+
+  1. Kasir masuk ke sistem menggunakan username dan password.
+  2. Kasir membuka menu "Nota" dan memilih "Buat Nota Baru".
+  3. Kasir mengisi data pelanggan: nama, nomor HP, dan alamat
+     (jika ada pengiriman).
+  4. Kasir memilih barang-barang yang akan dibeli dari daftar
+     produk, beserta jumlahnya.
+  5. Sistem otomatis menghitung harga per item (termasuk diskon
+     jika ada promo aktif) dan total keseluruhan.
+  6. Kasir dapat menambahkan catatan khusus jika diperlukan.
+  7. Nota disimpan. Stok barang berkurang otomatis sesuai jumlah
+     yang terjual.
+  8. Kasir mencetak nota sebagai faktur untuk pelanggan.
+  9. Jika barang dikirim, kasir juga mencetak surat jalan.
+ 10. Admin atau kasir memperbarui status pengiriman setelah
+     barang dikirim.
+
+  [!] Satu nota bisa memuat banyak jenis barang sekaligus.
+  Sistem secara otomatis menerapkan harga promo jika ada promo
+  yang sedang berjalan untuk barang tersebut.
+
+----------------------------------------------------------------
+3.2 Alur Retur Barang
+----------------------------------------------------------------
+  1. Pelanggan datang dengan nota asli (atau kasir mencari nota
+     berdasarkan nomor nota).
+  2. Kasir membuka menu "Retur" dan mencari nota transaksi
+     yang terkait.
+  3. Kasir memilih barang yang ingin diretur dan memasukkan
+     jumlah barang yang dikembalikan.
+  4. Kasir memilih kondisi barang: "Bagus" atau "Rusak".
+  5. Kasir mengisi alasan retur (misal: barang cacat, salah
+     ukuran, dll.).
+  6. Sistem menghitung nilai pengembalian uang: hanya barang
+     kondisi "Bagus" yang mendapat pengembalian uang penuh.
+  7. Barang kondisi "Bagus" masuk kembali ke stok bagus. Barang
+     kondisi "Rusak" masuk ke stok rusak.
+  8. Retur tercatat dalam sistem dan dapat dilihat riwayatnya
+     kapan saja.
+
+----------------------------------------------------------------
+3.3 Alur Pengelolaan Produk (oleh Admin)
+----------------------------------------------------------------
+  1. Admin membuka menu "Barang".
+  2. Untuk menambah produk baru: Admin mengisi nama barang,
+     memilih kategori, menentukan grade, harga jual, dan batas
+     minimum stok.
+  3. Untuk mengisi stok: Admin memperbarui jumlah stok bagus
+     dan stok rusak.
+  4. Untuk mengaktifkan promo: Admin membuka detail barang dan
+     menambahkan promo dengan mengisi besaran diskon serta
+     tanggal berlakunya.
+  5. Diskon akan aktif secara otomatis pada tanggal yang
+     ditentukan dan berhenti setelah tanggal berakhir.
+  6. Jika stok mendekati batas minimum, sistem akan menampilkan
+     peringatan di dashboard.
+
+----------------------------------------------------------------
+3.4 Alur Pemantauan Laporan (oleh Admin)
+----------------------------------------------------------------
+  1. Admin membuka menu "Analisis".
+  2. Admin memilih jenis laporan: Pendapatan, Kategori,
+     Pelanggan, atau Laba.
+  3. Admin menentukan rentang waktu yang ingin dilihat.
+  4. Sistem menampilkan data dalam bentuk tabel dan grafik.
+  5. Sistem juga menampilkan perbandingan dengan periode
+     sebelumnya (naik atau turun berapa persen).
+  6. Admin dapat mengekspor laporan ke Excel atau PDF.
+
+----------------------------------------------------------------
+3.5 Alur Pengelolaan Supplier
+----------------------------------------------------------------
+  1. Admin membuka menu "Supplier".
+  2. Admin menambah supplier baru dengan mengisi nama, alamat,
+     kontak, dan catatan kinerja.
+  3. Riwayat pasokan barang dari setiap supplier dapat dilihat
+     di halaman detail supplier.
+  4. Admin dapat memperbarui catatan kinerja supplier kapan saja.
+
+
+================================================================
+4. HAK AKSES PENGGUNA
+================================================================
+
+  Fitur / Modul                    | Admin      | Kasir
+  ---------------------------------+------------+------------------
+  Dashboard                        | Bisa       | Bisa
+  Lihat & Buat Nota Penjualan      | Bisa       | Bisa
+  Cetak Nota & Surat Jalan         | Bisa       | Bisa
+  Proses Retur Barang              | Bisa       | Bisa
+  Lihat Riwayat Nota & Retur       | Bisa       | Bisa (nota sendiri)
+  Kelola Data Barang & Stok        | Bisa       | Tidak Bisa
+  Kelola Kategori Produk           | Bisa       | Tidak Bisa
+  Kelola Data Supplier             | Bisa       | Tidak Bisa
+  Kelola Akun Kasir                | Bisa       | Tidak Bisa
+  Lihat Laporan & Analisis         | Bisa       | Tidak Bisa
+  Export Laporan (Excel/PDF)       | Bisa       | Tidak Bisa
+  Atur Promo / Diskon              | Bisa       | Tidak Bisa
+  Edit Profil Toko                 | Bisa       | Tidak Bisa
+  Edit Profil Sendiri              | Bisa       | Bisa
+
+
+================================================================
+5. KONSEP PENTING DALAM SISTEM
+================================================================
+
+----------------------------------------------------------------
+5.1 Grade Barang
+----------------------------------------------------------------
+Grade adalah penanda kualitas suatu barang. Misalnya barang
+grade A berarti kualitas terbaik, grade B berarti ada sedikit
+kekurangan, dan seterusnya. Sistem memungkinkan satu nama barang
+memiliki grade berbeda-beda dengan harga yang berbeda pula.
+
+----------------------------------------------------------------
+5.2 Stok Bagus vs Stok Rusak
+----------------------------------------------------------------
+Sistem memisahkan pencatatan stok menjadi dua jenis:
+
+  - Stok Bagus: Barang dalam kondisi layak jual.
+  - Stok Rusak: Barang yang cacat atau tidak bisa dijual,
+    misalnya hasil retur pelanggan dalam kondisi rusak, atau
+    barang yang rusak saat penyimpanan.
+
+Pemisahan ini membantu pemilik toko memahami kondisi gudang
+secara lebih akurat.
+
+----------------------------------------------------------------
+5.3 Sistem Promo Otomatis
+----------------------------------------------------------------
+Promo diatur per barang oleh Admin dengan menentukan:
+  - Besaran potongan harga (dalam rupiah).
+  - Tanggal mulai promo.
+  - Tanggal berakhir promo.
+
+Ketika kasir membuat nota, sistem secara otomatis menerapkan
+diskon jika promo sedang aktif, tanpa perlu input manual dari
+kasir. Ini mengurangi risiko kesalahan manusia dalam menerapkan
+harga promo.
+
+----------------------------------------------------------------
+5.4 Nomor Nota Unik
+----------------------------------------------------------------
+Setiap transaksi penjualan mendapatkan nomor nota yang unik dan
+tidak bisa diulang. Nomor ini berfungsi sebagai identitas
+transaksi yang memudahkan pelacakan jika ada pertanyaan atau
+masalah di kemudian hari.
+
+----------------------------------------------------------------
+5.5 Surat Jalan
+----------------------------------------------------------------
+Surat jalan adalah dokumen resmi yang menyertai pengiriman
+barang. Dokumen ini berisi daftar barang yang dikirim, alamat
+tujuan, dan informasi nota yang berkaitan. Surat jalan dicetak
+oleh kasir dan diberikan kepada kurir atau pelanggan sebagai
+bukti pengiriman.
+
+----------------------------------------------------------------
+5.6 Perbandingan Periode dalam Analisis
+----------------------------------------------------------------
+Saat Admin melihat laporan pendapatan untuk periode tertentu,
+sistem otomatis menampilkan perbandingan dengan periode yang sama
+sebelumnya. Misalnya, jika Admin melihat laporan bulan ini,
+sistem juga menampilkan angka bulan lalu dan menghitung
+persentase kenaikan atau penurunannya. Fitur ini membantu
+mengukur pertumbuhan bisnis secara objektif.
+
+
+================================================================
+6. PERTANYAAN YANG SERING DIAJUKAN (FAQ)
+================================================================
+
+T: Apakah sistem ini bisa diakses dari HP?
+J: Ya. Sistem ini berbasis web dan dapat diakses dari browser
+   di HP, tablet, maupun komputer. Cukup buka browser dan masuk
+   ke alamat aplikasi.
+
+T: Apakah data aman jika internet mati?
+J: Sistem memerlukan koneksi internet untuk berfungsi karena
+   data tersimpan di server. Jika internet terputus, transaksi
+   tidak dapat dilakukan hingga koneksi pulih kembali.
+
+T: Apa yang terjadi pada stok jika nota dibatalkan?
+J: Jika sebuah nota dihapus dari sistem, stok barang yang
+   terkait akan dikembalikan secara otomatis ke jumlah semula.
+
+T: Bisakah kasir melihat laporan penjualan?
+J: Kasir hanya dapat melihat daftar nota yang pernah dibuat.
+   Laporan analisis lengkap hanya bisa diakses oleh Admin.
+
+T: Bagaimana cara mengganti password?
+J: Setiap pengguna dapat mengganti passwordnya melalui menu
+   "Profil" yang ada di dalam sistem.
+
+T: Apakah bisa ada lebih dari satu kasir?
+J: Ya. Admin dapat membuat banyak akun kasir sesuai kebutuhan.
+   Setiap kasir login dengan akun masing-masing sehingga
+   transaksi setiap kasir tercatat secara terpisah.
+
+T: Bagaimana cara mengetahui barang mana yang paling laku?
+J: Admin dapat melihatnya melalui menu "Analisis" > "Analisis
+   Kategori" atau melihat kolom "Jumlah Terjual" di daftar
+   barang.
+
+
+================================================================
+7. GLOSARIUM
+================================================================
+
+  Admin       : Pengguna dengan hak akses penuh, biasanya
+                pemilik atau manajer toko.
+
+  Kasir       : Pengguna dengan hak akses terbatas, bertugas
+                melayani transaksi penjualan.
+
+  Nota        : Dokumen transaksi penjualan, juga disebut
+                faktur atau invoice.
+
+  Retur       : Pengembalian barang dari pelanggan kepada toko.
+
+  Grade       : Label kualitas barang (A = terbaik, B = standar,
+                dst.).
+
+  Stok Bagus  : Jumlah barang dalam kondisi layak jual.
+
+  Stok Rusak  : Jumlah barang yang cacat atau tidak layak jual.
+
+  Promo       : Potongan harga sementara yang diterapkan pada
+                barang tertentu.
+
+  Surat Jalan : Dokumen resmi yang menyertai pengiriman barang
+                kepada pelanggan.
+
+  Supplier    : Pemasok atau vendor yang menyediakan barang
+                untuk toko.
+
+  Kategori    : Pengelompokan barang berdasarkan jenis atau
+                tipe produk.
+
+  Dashboard   : Halaman utama yang menampilkan ringkasan
+                informasi toko.
+
+  Min. Stok   : Batas minimum stok yang ditentukan oleh Admin.
+                Jika stok menyentuh angka ini, sistem memberi
+                peringatan.
+
+  POS         : Point of Sale -- sistem kasir digital untuk
+                mengelola transaksi penjualan di toko.
+
+
+================================================================
+                     --- Akhir Dokumen ---
+       Dokumen ini bersifat non-teknis dan ditujukan untuk
+           pengguna umum & manajemen. Versi 1.0 | 2026
+================================================================

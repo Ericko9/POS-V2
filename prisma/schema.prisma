@@ -1,0 +1,166 @@
+// Prisma Schema for POS System
+// Manajemen Toko Retail & Distribusi
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ================================================================
+// ENUMS
+// ================================================================
+
+enum Role {
+  ADMIN
+  KASIR
+}
+
+enum KondisiRetur {
+  BAGUS
+  RUSAK
+}
+
+enum StatusPengiriman {
+  BELUM_DIKIRIM
+  SUDAH_DIKIRIM
+}
+
+// ================================================================
+// MODELS
+// ================================================================
+
+model User {
+  id        String   @id @default(cuid())
+  nama      String
+  username  String   @unique
+  email     String?
+  noHp      String?
+  password  String
+  role      Role     @default(KASIR)
+  aktif     Boolean  @default(true)
+  catatan   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  nota Nota[]
+}
+
+model Kategori {
+  id        String   @id @default(cuid())
+  nama      String   @unique
+  createdAt DateTime @default(now())
+
+  barang Barang[]
+}
+
+model Supplier {
+  id        String   @id @default(cuid())
+  nama      String
+  alamat    String?
+  noTelp    String?
+  email     String?
+  catatan   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  barang Barang[]
+}
+
+model Barang {
+  id            String   @id @default(cuid())
+  nama          String
+  grade         String
+  hargaJual     Float
+  hargaModal    Float
+  stokBagus     Int      @default(0)
+  stokRusak     Int      @default(0)
+  minStok       Int      @default(5)
+  jumlahTerjual Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  kategoriId String
+  kategori   Kategori @relation(fields: [kategoriId], references: [id])
+
+  supplierId String?
+  supplier   Supplier? @relation(fields: [supplierId], references: [id])
+
+  promo     Promo[]
+  itemNota  ItemNota[]
+  itemRetur ItemRetur[]
+}
+
+model Promo {
+  id           String   @id @default(cuid())
+  barangId     String
+  barang       Barang   @relation(fields: [barangId], references: [id], onDelete: Cascade)
+  diskon       Float
+  tanggalMulai DateTime
+  tanggalAkhir DateTime
+  createdAt    DateTime @default(now())
+}
+
+model Nota {
+  id               String           @id @default(cuid())
+  nomorNota        String           @unique
+  namaPelanggan    String
+  noHpPelanggan    String?
+  alamatPelanggan  String?
+  catatan          String?
+  totalHarga       Float
+  statusPengiriman StatusPengiriman @default(BELUM_DIKIRIM)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  kasirId String
+  kasir   User   @relation(fields: [kasirId], references: [id])
+
+  items ItemNota[]
+  retur Retur[]
+}
+
+model ItemNota {
+  id          String @id @default(cuid())
+  notaId      String
+  nota        Nota   @relation(fields: [notaId], references: [id], onDelete: Cascade)
+  barangId    String
+  barang      Barang @relation(fields: [barangId], references: [id])
+  jumlah      Int
+  hargaSatuan Float
+  diskon      Float  @default(0)
+  subtotal    Float
+}
+
+model Retur {
+  id         String   @id @default(cuid())
+  notaId     String
+  nota       Nota     @relation(fields: [notaId], references: [id])
+  alasan     String
+  totalNilai Float
+  createdAt  DateTime @default(now())
+
+  items ItemRetur[]
+}
+
+model ItemRetur {
+  id           String       @id @default(cuid())
+  returId      String
+  retur        Retur        @relation(fields: [returId], references: [id], onDelete: Cascade)
+  barangId     String
+  barang       Barang       @relation(fields: [barangId], references: [id])
+  jumlah       Int
+  kondisi      KondisiRetur
+  nilaiKembali Float
+}
+
+model ProfilToko {
+  id        String   @id @default(cuid())
+  namaToko  String
+  alamat    String?
+  noTelp    String?
+  email     String?
+  updatedAt DateTime @updatedAt
+}

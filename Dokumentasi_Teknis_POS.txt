@@ -1,0 +1,849 @@
+================================================================
+         DOKUMENTASI TEKNIS SISTEM POINT OF SALE (POS)
+              Manajemen Toko Retail & Distribusi
+================================================================
+Versi Dokumen : 1.0
+Tanggal       : Mei 2026
+Diperuntukkan : Developer / Engineer
+Sifat         : Teknis (Internal)
+================================================================
+
+
+================================================================
+DAFTAR ISI
+================================================================
+1.  Arsitektur Sistem
+2.  Tech Stack
+3.  Struktur Project
+4.  Skema Database (Prisma Schema)
+5.  API Routes
+6.  Autentikasi & Otorisasi
+7.  Modul & Logika Bisnis
+8.  Fitur Khusus (Promo, Stok, Retur)
+9.  Analisis & Laporan
+10. Cetak Dokumen (Nota, Surat Jalan)
+11. Environment Variables
+12. Deployment
+================================================================
+
+
+================================================================
+1. ARSITEKTUR SISTEM
+================================================================
+
+Sistem POS ini dibangun sebagai aplikasi web full-stack berbasis
+Next.js App Router dengan arsitektur monorepo. Frontend dan
+backend berada dalam satu project Next.js yang di-deploy ke
+Vercel.
+
+  [Browser / Client]
+       |
+       v
+  [Next.js App Router - Vercel]
+       |-- /app/(auth)          --> Halaman login
+       |-- /app/(dashboard)     --> Halaman utama per modul
+       |-- /app/api/            --> API Routes (REST)
+       |-- /lib/                --> Prisma client, auth config, utils
+       |
+       v
+  [Neon PostgreSQL - Serverless]
+
+Komunikasi antara client component dan server menggunakan:
+  - Server Actions (untuk mutasi data / form submission)
+  - API Routes (untuk fetch data & integrasi eksternal)
+  - Prisma ORM (query database ke Neon PostgreSQL)
+
+
+================================================================
+2. TECH STACK
+================================================================
+
+  Layer            | Teknologi
+  -----------------+-------------------------------------------
+  Framework        | Next.js 15 (App Router)
+  Bahasa           | TypeScript
+  Styling          | Tailwind CSS + shadcn/ui
+  ORM              | Prisma
+  Database         | Neon (PostgreSQL serverless)
+  Autentikasi      | Auth.js v5 (NextAuth)
+  Deployment       | Vercel
+  Export Laporan   | xlsx (Excel), @react-pdf/renderer (PDF)
+  Grafik           | Recharts
+  Print / Cetak    | Browser Print API via window.print()
+
+
+================================================================
+3. STRUKTUR PROJECT
+================================================================
+
+pos-app/
+├── app/
+│   ├── (auth)/
+│   │   └── login/
+│   │       └── page.tsx              # Halaman login
+│   ├── (dashboard)/
+│   │   ├── layout.tsx                # Layout utama + sidebar
+│   │   ├── page.tsx                  # Dashboard utama
+│   │   ├── barang/
+│   │   │   ├── page.tsx              # Daftar produk
+│   │   │   ├── [id]/page.tsx         # Detail & edit produk
+│   │   │   └── baru/page.tsx         # Tambah produk
+│   │   ├── kategori/
+│   │   │   └── page.tsx
+│   │   ├── supplier/
+│   │   │   ├── page.tsx
+│   │   │   └── [id]/page.tsx
+│   │   ├── nota/
+│   │   │   ├── page.tsx              # Daftar nota
+│   │   │   ├── baru/page.tsx         # Buat nota baru
+│   │   │   └── [id]/page.tsx         # Detail nota + cetak
+│   │   ├── retur/
+│   │   │   ├── page.tsx
+│   │   │   └── baru/page.tsx
+│   │   ├── kasir/
+│   │   │   └── page.tsx              # Kelola akun kasir (Admin)
+│   │   ├── analisis/
+│   │   │   └── page.tsx              # Laporan & grafik
+│   │   └── profil/
+│   │       └── page.tsx
+│   ├── api/
+│   │   ├── auth/
+│   │   │   └── [...nextauth]/route.ts
+│   │   ├── barang/
+│   │   │   ├── route.ts              # GET list, POST create
+│   │   │   └── [id]/route.ts         # GET detail, PUT, DELETE
+│   │   ├── kategori/route.ts
+│   │   ├── supplier/route.ts
+│   │   ├── nota/
+│   │   │   ├── route.ts
+│   │   │   └── [id]/route.ts
+│   │   ├── retur/route.ts
+│   │   ├── kasir/route.ts
+│   │   └── analisis/
+│   │       ├── pendapatan/route.ts
+│   │       ├── kategori/route.ts
+│   │       ├── pelanggan/route.ts
+│   │       └── laba/route.ts
+│   └── layout.tsx
+├── components/
+│   ├── ui/                           # Komponen shadcn/ui (auto-generate)
+│   ├── shared/
+│   │   ├── Sidebar.tsx
+│   │   ├── Header.tsx
+│   │   └── DataTable.tsx
+│   ├── nota/
+│   │   ├── FormNota.tsx
+│   │   ├── CetakNota.tsx             # Template cetak nota
+│   │   └── CetakSuratJalan.tsx       # Template cetak surat jalan
+│   └── dashboard/
+│       ├── CardRingkasan.tsx
+│       ├── GrafikPenjualan.tsx
+│       └── TabelTransaksiTerbaru.tsx
+├── lib/
+│   ├── db.ts                         # Prisma client singleton
+│   ├── auth.ts                       # Konfigurasi Auth.js
+│   └── utils.ts                      # Helper functions
+├── prisma/
+│   └── schema.prisma                 # Skema database lengkap
+├── types/
+│   └── index.ts                      # TypeScript global types
+├── .env                              # Environment variables
+└── middleware.ts                     # Route protection
+
+
+================================================================
+4. SKEMA DATABASE (PRISMA SCHEMA)
+================================================================
+
+File: prisma/schema.prisma
+
+----------------------------------------------------------------
+4.1 Enum
+----------------------------------------------------------------
+
+  enum Role {
+    ADMIN
+    KASIR
+  }
+
+  enum KondisiRetur {
+    BAGUS
+    RUSAK
+  }
+
+  enum StatusPengiriman {
+    BELUM_DIKIRIM
+    SUDAH_DIKIRIM
+  }
+
+----------------------------------------------------------------
+4.2 Model User (Kasir & Admin)
+----------------------------------------------------------------
+
+  model User {
+    id          String    @id @default(cuid())
+    nama        String
+    username    String    @unique
+    email       String?
+    noHp        String?
+    password    String                    // Hashed dengan bcrypt
+    role        Role      @default(KASIR)
+    aktif       Boolean   @default(true)
+    catatan     String?
+    createdAt   DateTime  @default(now())
+    updatedAt   DateTime  @updatedAt
+
+    nota        Nota[]                    // Relasi ke nota yang dibuat
+  }
+
+----------------------------------------------------------------
+4.3 Model Kategori
+----------------------------------------------------------------
+
+  model Kategori {
+    id        String    @id @default(cuid())
+    nama      String    @unique
+    createdAt DateTime  @default(now())
+
+    barang    Barang[]
+  }
+
+----------------------------------------------------------------
+4.4 Model Supplier
+----------------------------------------------------------------
+
+  model Supplier {
+    id          String    @id @default(cuid())
+    nama        String
+    alamat      String?
+    noTelp      String?
+    email       String?
+    catatan     String?
+    createdAt   DateTime  @default(now())
+    updatedAt   DateTime  @updatedAt
+
+    barang      Barang[]
+  }
+
+----------------------------------------------------------------
+4.5 Model Barang (Produk)
+----------------------------------------------------------------
+
+  model Barang {
+    id            String    @id @default(cuid())
+    nama          String
+    grade         String                    // Contoh: "A", "B", "C"
+    hargaJual     Float
+    hargaModal    Float
+    stokBagus     Int       @default(0)
+    stokRusak     Int       @default(0)
+    minStok       Int       @default(5)     // Batas minimum stok
+    jumlahTerjual Int       @default(0)     // Akumulasi unit terjual
+    createdAt     DateTime  @default(now())
+    updatedAt     DateTime  @updatedAt
+
+    kategoriId    String
+    kategori      Kategori  @relation(fields: [kategoriId], references: [id])
+
+    supplierId    String?
+    supplier      Supplier? @relation(fields: [supplierId], references: [id])
+
+    promo         Promo[]
+    itemNota      ItemNota[]
+    itemRetur     ItemRetur[]
+  }
+
+----------------------------------------------------------------
+4.6 Model Promo (Diskon Otomatis)
+----------------------------------------------------------------
+
+  model Promo {
+    id          String    @id @default(cuid())
+    barangId    String
+    barang      Barang    @relation(fields: [barangId], references: [id])
+    diskon      Float                       // Nominal diskon dalam rupiah
+    tanggalMulai DateTime
+    tanggalAkhir DateTime
+    createdAt   DateTime  @default(now())
+  }
+
+  -- Catatan: Promo aktif dihitung saat query dengan kondisi:
+  -- WHERE tanggalMulai <= NOW() AND tanggalAkhir >= NOW()
+
+----------------------------------------------------------------
+4.7 Model Nota (Transaksi Penjualan)
+----------------------------------------------------------------
+
+  model Nota {
+    id               String           @id @default(cuid())
+    nomorNota        String           @unique  // Auto-generated
+    namaPelanggan    String
+    noHpPelanggan    String?
+    alamatPelanggan  String?
+    catatan          String?
+    totalHarga       Float
+    statusPengiriman StatusPengiriman @default(BELUM_DIKIRIM)
+    createdAt        DateTime         @default(now())
+    updatedAt        DateTime         @updatedAt
+
+    kasirId          String
+    kasir            User             @relation(fields: [kasirId], references: [id])
+
+    items            ItemNota[]
+    retur            Retur[]
+  }
+
+----------------------------------------------------------------
+4.8 Model ItemNota (Detail Barang per Nota)
+----------------------------------------------------------------
+
+  model ItemNota {
+    id          String  @id @default(cuid())
+    notaId      String
+    nota        Nota    @relation(fields: [notaId], references: [id], onDelete: Cascade)
+    barangId    String
+    barang      Barang  @relation(fields: [barangId], references: [id])
+    jumlah      Int
+    hargaSatuan Float                         // Harga saat transaksi
+    diskon      Float   @default(0)           // Diskon yang diterapkan saat itu
+    subtotal    Float                         // (hargaSatuan - diskon) * jumlah
+  }
+
+----------------------------------------------------------------
+4.9 Model Retur
+----------------------------------------------------------------
+
+  model Retur {
+    id        String    @id @default(cuid())
+    notaId    String
+    nota      Nota      @relation(fields: [notaId], references: [id])
+    alasan    String
+    totalNilai Float                          // Total nilai pengembalian uang
+    createdAt DateTime  @default(now())
+
+    items     ItemRetur[]
+  }
+
+  model ItemRetur {
+    id        String        @id @default(cuid())
+    returId   String
+    retur     Retur         @relation(fields: [returId], references: [id])
+    barangId  String
+    barang    Barang        @relation(fields: [barangId], references: [id])
+    jumlah    Int
+    kondisi   KondisiRetur                    // BAGUS atau RUSAK
+    nilaiKembali Float                        // 0 jika kondisi RUSAK
+  }
+
+----------------------------------------------------------------
+4.10 Model ProfilToko
+----------------------------------------------------------------
+
+  model ProfilToko {
+    id        String  @id @default(cuid())
+    namaToko  String
+    alamat    String?
+    noTelp    String?
+    email     String?
+    updatedAt DateTime @updatedAt
+  }
+
+
+================================================================
+5. API ROUTES
+================================================================
+
+Semua API menggunakan Next.js Route Handlers (/app/api/).
+Response format standar:
+
+  {
+    "success": true | false,
+    "data": <payload> | null,
+    "message": "..."
+  }
+
+----------------------------------------------------------------
+5.1 Auth
+----------------------------------------------------------------
+
+  POST   /api/auth/[...nextauth]    Login / logout (Auth.js handler)
+
+----------------------------------------------------------------
+5.2 Barang
+----------------------------------------------------------------
+
+  GET    /api/barang                Daftar semua barang
+                                    Query params: ?kategori=&search=&stokMenipis=true
+  POST   /api/barang                Tambah barang baru (Admin only)
+  GET    /api/barang/[id]           Detail barang + promo aktif
+  PUT    /api/barang/[id]           Update barang (Admin only)
+  DELETE /api/barang/[id]           Hapus barang (Admin only)
+  POST   /api/barang/[id]/promo     Tambah promo pada barang (Admin only)
+  DELETE /api/barang/[id]/promo/[promoId]  Hapus promo (Admin only)
+
+----------------------------------------------------------------
+5.3 Kategori
+----------------------------------------------------------------
+
+  GET    /api/kategori              Daftar semua kategori
+  POST   /api/kategori              Tambah kategori (Admin only)
+  PUT    /api/kategori/[id]         Edit kategori (Admin only)
+  DELETE /api/kategori/[id]         Hapus kategori (Admin only)
+
+----------------------------------------------------------------
+5.4 Supplier
+----------------------------------------------------------------
+
+  GET    /api/supplier              Daftar supplier
+  POST   /api/supplier              Tambah supplier (Admin only)
+  GET    /api/supplier/[id]         Detail + riwayat barang supplier
+  PUT    /api/supplier/[id]         Edit supplier (Admin only)
+  DELETE /api/supplier/[id]         Hapus supplier (Admin only)
+
+----------------------------------------------------------------
+5.5 Nota
+----------------------------------------------------------------
+
+  GET    /api/nota                  Daftar nota
+                                    Query params: ?tanggalMulai=&tanggalAkhir=&search=
+  POST   /api/nota                  Buat nota baru
+  GET    /api/nota/[id]             Detail nota + items
+  PUT    /api/nota/[id]/pengiriman  Update status pengiriman
+  DELETE /api/nota/[id]             Hapus nota (stok dikembalikan)
+
+----------------------------------------------------------------
+5.6 Retur
+----------------------------------------------------------------
+
+  GET    /api/retur                 Daftar semua retur
+  POST   /api/retur                 Buat retur baru
+  GET    /api/retur/[id]            Detail retur
+
+----------------------------------------------------------------
+5.7 Kasir (User Management)
+----------------------------------------------------------------
+
+  GET    /api/kasir                 Daftar kasir (Admin only)
+  POST   /api/kasir                 Tambah kasir baru (Admin only)
+  PUT    /api/kasir/[id]            Edit data kasir (Admin only)
+  DELETE /api/kasir/[id]            Nonaktifkan kasir (Admin only)
+
+----------------------------------------------------------------
+5.8 Analisis
+----------------------------------------------------------------
+
+  GET    /api/analisis/pendapatan   Laporan pendapatan
+                                    Query params: ?dari=&sampai=
+  GET    /api/analisis/kategori     Penjualan per kategori
+  GET    /api/analisis/pelanggan    Top pelanggan
+  GET    /api/analisis/laba         Estimasi laba bersih
+
+----------------------------------------------------------------
+5.9 Dashboard
+----------------------------------------------------------------
+
+  GET    /api/dashboard             Ringkasan: total hari ini, stok menipis,
+                                    transaksi terbaru, data grafik mingguan
+
+
+================================================================
+6. AUTENTIKASI & OTORISASI
+================================================================
+
+----------------------------------------------------------------
+6.1 Auth.js Konfigurasi
+----------------------------------------------------------------
+
+File: lib/auth.ts
+
+Menggunakan Credentials Provider (username + password).
+Password di-hash menggunakan bcrypt (saltRounds: 12).
+
+  import NextAuth from "next-auth"
+  import Credentials from "next-auth/providers/credentials"
+  import { prisma } from "./db"
+  import bcrypt from "bcryptjs"
+
+  export const { handlers, signIn, signOut, auth } = NextAuth({
+    providers: [
+      Credentials({
+        credentials: {
+          username: {},
+          password: {},
+        },
+        authorize: async (credentials) => {
+          const user = await prisma.user.findUnique({
+            where: { username: credentials.username, aktif: true }
+          })
+          if (!user) return null
+          const valid = await bcrypt.compare(credentials.password, user.password)
+          if (!valid) return null
+          return { id: user.id, name: user.nama, role: user.role }
+        }
+      })
+    ],
+    callbacks: {
+      jwt({ token, user }) {
+        if (user) token.role = user.role
+        return token
+      },
+      session({ session, token }) {
+        session.user.role = token.role
+        return session
+      }
+    },
+    pages: { signIn: "/login" }
+  })
+
+----------------------------------------------------------------
+6.2 Middleware Proteksi Route
+----------------------------------------------------------------
+
+File: middleware.ts
+
+Semua route dalam /(dashboard) diproteksi. Jika tidak login
+akan diredirect ke /login.
+
+Otorisasi berdasarkan role dilakukan di level:
+  - Server Component: menggunakan auth() dari lib/auth.ts
+  - API Route: menggunakan auth() dan cek session.user.role
+
+  Contoh cek role di API Route:
+    const session = await auth()
+    if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 })
+    if (session.user.role !== "ADMIN") return Response.json({ error: "Forbidden" }, { status: 403 })
+
+----------------------------------------------------------------
+6.3 Matriks Akses
+----------------------------------------------------------------
+
+  Endpoint / Aksi                  | ADMIN | KASIR
+  ---------------------------------+-------+-------
+  GET /api/dashboard               | YES   | YES
+  GET /api/nota (semua)            | YES   | YES*
+  POST /api/nota                   | YES   | YES
+  DELETE /api/nota/[id]            | YES   | NO
+  GET /api/barang                  | YES   | YES
+  POST/PUT/DELETE /api/barang      | YES   | NO
+  GET/POST/PUT/DELETE /api/kategori| YES   | NO
+  GET/POST/PUT/DELETE /api/supplier| YES   | NO
+  POST /api/retur                  | YES   | YES
+  GET /api/kasir                   | YES   | NO
+  GET /api/analisis/*              | YES   | NO
+
+  *Kasir hanya bisa melihat nota yang dibuat oleh dirinya sendiri.
+
+
+================================================================
+7. MODUL & LOGIKA BISNIS
+================================================================
+
+----------------------------------------------------------------
+7.1 Pembuatan Nota (Transaksi Penjualan)
+----------------------------------------------------------------
+
+Logika di POST /api/nota:
+
+  1. Validasi semua item: stok barang mencukupi.
+  2. Untuk setiap item, cek promo aktif pada barang:
+       SELECT * FROM Promo
+       WHERE barangId = ?
+         AND tanggalMulai <= NOW()
+         AND tanggalAkhir >= NOW()
+       ORDER BY createdAt DESC LIMIT 1
+  3. Hitung subtotal per item:
+       subtotal = (hargaJual - diskon) * jumlah
+  4. Hitung totalHarga = SUM(subtotal semua item)
+  5. Generate nomorNota unik (format: POS-YYYYMMDD-XXXX)
+  6. Buat record Nota + ItemNota dalam satu Prisma transaction.
+  7. Kurangi stokBagus setiap barang sesuai jumlah terjual.
+  8. Tambah jumlahTerjual setiap barang.
+
+  Semua operasi di atas dibungkus dalam:
+    await prisma.$transaction([...])
+
+----------------------------------------------------------------
+7.2 Penghapusan Nota
+----------------------------------------------------------------
+
+Logika di DELETE /api/nota/[id]:
+
+  1. Ambil semua ItemNota dari nota tersebut.
+  2. Kembalikan stokBagus setiap barang (stok += jumlah item).
+  3. Kurangi jumlahTerjual setiap barang.
+  4. Hapus nota (ItemNota terhapus otomatis via onDelete: Cascade).
+  5. Semua dalam satu Prisma transaction.
+
+----------------------------------------------------------------
+7.3 Generate Nomor Nota
+----------------------------------------------------------------
+
+Format: POS-YYYYMMDD-XXXX
+Contoh: POS-20260515-0001
+
+  function generateNomorNota(tanggal: Date, urutan: number): string {
+    const tgl = tanggal.toISOString().slice(0, 10).replace(/-/g, "")
+    const seq = String(urutan).padStart(4, "0")
+    return `POS-${tgl}-${seq}`
+  }
+
+Urutan di-reset setiap hari berdasarkan COUNT nota dengan
+tanggal yang sama.
+
+----------------------------------------------------------------
+7.4 Stok Menipis (Dashboard Alert)
+----------------------------------------------------------------
+
+Query barang yang stoknya di bawah atau sama dengan minStok:
+
+  const stokMenipis = await prisma.barang.findMany({
+    where: {
+      stokBagus: { lte: prisma.barang.fields.minStok }
+    },
+    orderBy: { stokBagus: "asc" }
+  })
+
+  // Alternatif dengan raw query jika Prisma tidak support field comparison:
+  const stokMenipis = await prisma.$queryRaw`
+    SELECT * FROM "Barang"
+    WHERE "stokBagus" <= "minStok"
+    ORDER BY "stokBagus" ASC
+  `
+
+
+================================================================
+8. FITUR KHUSUS
+================================================================
+
+----------------------------------------------------------------
+8.1 Promo Otomatis
+----------------------------------------------------------------
+
+Saat kasir menambahkan item ke nota, frontend memanggil
+GET /api/barang/[id] yang sudah menyertakan promo aktif.
+Harga yang ditampilkan ke kasir sudah termasuk potongan.
+
+Validasi promo dilakukan ulang di server saat POST /api/nota
+untuk mencegah manipulasi harga dari sisi client.
+
+----------------------------------------------------------------
+8.2 Retur Barang
+----------------------------------------------------------------
+
+Logika di POST /api/retur:
+
+  1. Ambil nota asal berdasarkan notaId.
+  2. Validasi: barang yang diretur harus ada di nota tersebut
+     dan jumlah retur tidak melebihi jumlah beli.
+  3. Untuk setiap item retur:
+     - Jika kondisi BAGUS  -> stokBagus += jumlah
+     - Jika kondisi RUSAK  -> stokRusak += jumlah
+     - Kurangi jumlahTerjual barang
+  4. Hitung nilaiKembali per item:
+     - BAGUS  -> hargaSatuan - diskon (saat transaksi asal)
+     - RUSAK  -> 0
+  5. Hitung totalNilai = SUM(nilaiKembali * jumlah) untuk item BAGUS
+  6. Simpan Retur + ItemRetur dalam satu transaction.
+
+----------------------------------------------------------------
+8.3 Stok Bagus vs Stok Rusak
+----------------------------------------------------------------
+
+Dua field terpisah di model Barang: stokBagus dan stokRusak.
+Penjualan hanya boleh menggunakan stokBagus.
+stokRusak hanya bertambah dari retur kondisi RUSAK.
+Keduanya ditampilkan secara terpisah di halaman detail barang.
+
+
+================================================================
+9. ANALISIS & LAPORAN
+================================================================
+
+----------------------------------------------------------------
+9.1 Analisis Pendapatan
+----------------------------------------------------------------
+
+  Query: SUM(totalHarga) dari Nota dalam rentang tanggal tertentu.
+  Perbandingan periode: hitung SUM untuk periode sebelumnya
+  (durasi yang sama mundur ke belakang), lalu hitung persentase:
+    delta = ((current - previous) / previous) * 100
+
+----------------------------------------------------------------
+9.2 Analisis per Kategori
+----------------------------------------------------------------
+
+  GROUP BY kategori, SUM subtotal dari ItemNota yang nota-nya
+  dalam rentang tanggal terpilih. Join Barang -> Kategori.
+
+----------------------------------------------------------------
+9.3 Analisis Pelanggan
+----------------------------------------------------------------
+
+  GROUP BY namaPelanggan + noHpPelanggan, COUNT nota dan SUM
+  totalHarga. Order DESC limit top 10.
+
+----------------------------------------------------------------
+9.4 Analisis Laba
+----------------------------------------------------------------
+
+  Laba per item = (hargaSatuan - diskon - hargaModal) * jumlah
+  Diperlukan join ItemNota -> Barang untuk mengambil hargaModal.
+  Laba bersih = SUM(laba per item) dikurangi nilai retur yang
+  sudah diproses.
+
+----------------------------------------------------------------
+9.5 Export Laporan
+----------------------------------------------------------------
+
+  - Excel : Menggunakan library xlsx (SheetJS).
+            Data di-format ke array of objects lalu di-convert
+            ke worksheet dan diunduh sebagai .xlsx.
+
+  - PDF   : Menggunakan @react-pdf/renderer.
+            Komponen React khusus dibuat untuk layout PDF,
+            lalu di-render ke Blob dan diunduh.
+
+----------------------------------------------------------------
+9.6 Grafik
+----------------------------------------------------------------
+
+  Library  : Recharts
+  Tipe     : BarChart (per kategori), LineChart (tren harian)
+  Data     : Diambil dari /api/dashboard atau /api/analisis/*
+  Komponen : <GrafikPenjualan /> menggunakan <ResponsiveContainer>
+
+
+================================================================
+10. CETAK DOKUMEN
+================================================================
+
+----------------------------------------------------------------
+10.1 Cetak Nota / Faktur
+----------------------------------------------------------------
+
+Komponen: components/nota/CetakNota.tsx
+
+Berisi layout HTML yang dioptimalkan untuk print.
+Menggunakan CSS @media print untuk menyembunyikan elemen UI
+dan hanya menampilkan konten nota.
+
+Informasi yang ditampilkan:
+  - Logo / nama toko (dari ProfilToko)
+  - Nomor nota, tanggal, nama kasir
+  - Data pelanggan
+  - Tabel item: nama barang, grade, jumlah, harga, diskon, subtotal
+  - Total harga
+  - Catatan nota
+
+Trigger cetak:
+  <button onClick={() => window.print()}>Cetak Nota</button>
+
+----------------------------------------------------------------
+10.2 Cetak Surat Jalan
+----------------------------------------------------------------
+
+Komponen: components/nota/CetakSuratJalan.tsx
+
+Konten berbeda dari nota. Fokus pada:
+  - Nomor surat jalan (sama dengan nomor nota)
+  - Tanggal pengiriman
+  - Nama & alamat pelanggan tujuan
+  - Daftar barang yang dikirim (nama, jumlah)
+  - Tanda tangan kurir / pengirim
+
+----------------------------------------------------------------
+10.3 Cetak Gabungan
+----------------------------------------------------------------
+
+Menampilkan CetakNota dan CetakSuratJalan dalam satu halaman
+dengan page-break di antara keduanya menggunakan CSS:
+  .page-break { page-break-before: always; }
+
+
+================================================================
+11. ENVIRONMENT VARIABLES
+================================================================
+
+File: .env (tidak boleh di-commit ke repository)
+
+  # Database
+  DATABASE_URL="postgresql://user:password@ep-xxx.neon.tech/dbname?sslmode=require"
+
+  # Auth.js
+  AUTH_SECRET="random-string-min-32-chars"
+  # Generate dengan: openssl rand -base64 32
+
+  # Next.js (opsional, untuk URL absolut)
+  NEXTAUTH_URL="https://domain-kamu.vercel.app"
+
+Tambahkan semua variable di atas ke Vercel Dashboard ->
+Project Settings -> Environment Variables.
+
+
+================================================================
+12. DEPLOYMENT
+================================================================
+
+----------------------------------------------------------------
+12.1 Setup Database (Neon)
+----------------------------------------------------------------
+
+  1. Buat akun di https://neon.tech
+  2. Buat project baru -> pilih region Asia Pacific (Singapore)
+     untuk latency minimum dari Indonesia
+  3. Salin Connection String (DATABASE_URL) dari dashboard
+  4. Jalankan migrasi:
+       npx prisma migrate dev --name init
+  5. (Opsional) Seed data awal:
+       npx prisma db seed
+
+----------------------------------------------------------------
+12.2 Deploy ke Vercel
+----------------------------------------------------------------
+
+  1. Push repository ke GitHub
+  2. Login ke https://vercel.com -> Add New Project
+  3. Import repository dari GitHub
+  4. Tambahkan Environment Variables (DATABASE_URL, AUTH_SECRET)
+  5. Build Command: next build (sudah default)
+  6. Klik Deploy
+
+  Setiap push ke branch main akan trigger auto-deploy.
+
+----------------------------------------------------------------
+12.3 Prisma di Vercel (Penting)
+----------------------------------------------------------------
+
+Tambahkan script postinstall di package.json agar Prisma
+Client di-generate otomatis saat build di Vercel:
+
+  "scripts": {
+    "postinstall": "prisma generate"
+  }
+
+----------------------------------------------------------------
+12.4 Prisma Client Singleton
+----------------------------------------------------------------
+
+File: lib/db.ts
+Wajib menggunakan singleton agar tidak terjadi connection leak
+di lingkungan serverless:
+
+  import { PrismaClient } from "@prisma/client"
+
+  const globalForPrisma = globalThis as unknown as {
+    prisma: PrismaClient | undefined
+  }
+
+  export const prisma =
+    globalForPrisma.prisma ?? new PrismaClient()
+
+  if (process.env.NODE_ENV !== "production")
+    globalForPrisma.prisma = prisma
+
+
+================================================================
+                      --- Akhir Dokumen ---
+   Dokumentasi ini bersifat teknis dan ditujukan untuk Developer.
+                   Versi 1.0 | Mei 2026
+================================================================

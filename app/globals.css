@@ -1,26 +1,151 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-background: #0a0a0f;
+  --color-foreground: #e4e4e7;
+  --color-card: #16161d;
+  --color-card-hover: #1e1e28;
+  --color-border: #27272a;
+  --color-muted: #71717a;
+  --color-muted-foreground: #a1a1aa;
+  --color-primary: #6366f1;
+  --color-primary-hover: #818cf8;
+  --color-primary-foreground: #ffffff;
+  --color-accent: #8b5cf6;
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-info: #3b82f6;
+  --color-sidebar: #111118;
+  --color-input: #1e1e28;
+  --font-sans: 'Inter', system-ui, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * { @apply border-border; }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
   }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* =============================================
+   Component Styles (Tailwind v4 compatible)
+   Using plain CSS instead of @apply with custom
+   utility references to avoid circular deps.
+   ============================================= */
+
+/* Base button */
+.btn-primary {
+  @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed bg-primary text-primary-foreground hover:bg-primary-hover shadow-lg shadow-primary/20;
+}
+.btn-secondary {
+  @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed bg-card text-foreground border border-border hover:bg-card-hover;
+}
+.btn-danger {
+  @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed bg-danger/10 text-danger border border-danger/20 hover:bg-danger/20;
+}
+.btn-success {
+  @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed bg-success/10 text-success border border-success/20 hover:bg-success/20;
+}
+.btn-ghost {
+  @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed bg-transparent text-muted-foreground hover:text-foreground hover:bg-card;
+}
+.btn-sm { @apply px-3 py-1.5 text-xs; }
+.btn-lg { @apply px-6 py-3 text-base; }
+
+/* Card */
+.card {
+  @apply bg-card rounded-2xl border border-border p-6 transition-all duration-200;
+}
+.card-hover {
+  @apply bg-card rounded-2xl border border-border p-6 transition-all duration-200 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5;
+}
+
+/* Form */
+.input-field {
+  @apply w-full px-4 py-2.5 bg-input border border-border rounded-xl text-foreground placeholder:text-muted focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all duration-200;
+}
+.label {
+  @apply block text-sm font-medium text-muted-foreground mb-1.5;
+}
+
+/* Badges */
+.badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+.badge-primary { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary; }
+.badge-success { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-success/10 text-success; }
+.badge-warning { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-warning/10 text-warning; }
+.badge-danger { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-danger/10 text-danger; }
+.badge-info { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-info/10 text-info; }
+
+/* Table */
+.table-container {
+  @apply w-full overflow-x-auto rounded-xl border border-border;
+}
+.table-base {
+  @apply w-full text-sm;
+}
+.table-base thead {
+  @apply bg-card;
+}
+.table-base th {
+  @apply px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider;
+}
+.table-base td {
+  @apply px-4 py-3 text-foreground border-t border-border;
+}
+.table-base tbody tr {
+  @apply hover:bg-card-hover transition-colors;
+}
+
+/* Page */
+.page-header {
+  @apply flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6;
+}
+.page-title {
+  @apply text-2xl font-bold text-foreground;
+}
+.page-subtitle {
+  @apply text-sm text-muted-foreground mt-1;
+}
+
+/* Stats */
+.stat-card {
+  @apply bg-card rounded-2xl border border-border p-6 transition-all duration-200 flex flex-col gap-2;
+}
+.stat-value {
+  @apply text-2xl font-bold text-foreground;
+}
+.stat-label {
+  @apply text-sm text-muted-foreground;
+}
+
+/* Modal */
+.modal-overlay {
+  @apply fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4;
+}
+.modal-content {
+  @apply bg-card border border-border rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto;
+}
+
+/* Sidebar */
+.sidebar-link {
+  @apply flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-card transition-all duration-200;
+}
+.sidebar-link-active {
+  @apply flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm bg-primary/10 text-primary font-medium transition-all duration-200;
+}
+
+@media print {
+  .no-print { display: none !important; }
+  body { background: white !important; color: black !important; }
+  .print-area { 
+    position: absolute; top: 0; left: 0; width: 100%;
+    background: white; color: black;
+  }
+  .page-break { page-break-before: always; }
 }
