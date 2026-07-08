@@ -6,6 +6,7 @@ import {
   LayoutDashboard, Package, Tags, Truck, FileText, RotateCcw,
   Users, BarChart3, UserCircle, Store, LogOut, Menu, X, ChevronRight
 } from "lucide-react"
+import { signOut } from "next-auth/react"
 
 const adminMenus = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -85,12 +86,13 @@ export default function Sidebar({ userName, userRole }: SidebarProps) {
             <p className="text-xs text-muted">{userRole}</p>
           </div>
         )}
-        <form action="/api/auth/signout" method="POST">
-          <button type="submit" className="sidebar-link w-full text-danger hover:text-danger hover:bg-danger/10">
-            <LogOut className="w-5 h-5 shrink-0" />
-            {!collapsed && <span>Keluar</span>}
-          </button>
-        </form>
+        <button
+          onClick={() => signOut({ callbackUrl: "/login" })}
+          className="sidebar-link w-full text-danger hover:text-danger hover:bg-danger/10"
+        >
+          <LogOut className="w-5 h-5 shrink-0" />
+          {!collapsed && <span>Keluar</span>}
+        </button>
       </div>
     </div>
   )

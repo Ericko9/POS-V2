@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { Store, Eye, EyeOff, Loader2 } from "lucide-react"
@@ -11,6 +11,18 @@ export default function LoginPage() {
   const [showPass, setShowPass] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search)
+      const errorParam = params.get("error")
+      if (errorParam === "CredentialsSignin") {
+        setError("Username atau password salah")
+      } else if (errorParam) {
+        setError("Terjadi kesalahan saat masuk")
+      }
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
   if ((session.user as { role?: string }).role !== "ADMIN") return json(null, false, "Forbidden", 403)
 
   const body = await req.json()
-  const { nama, grade, hargaJual, hargaModal, stokBagus, stokRusak, minStok, kategoriId, supplierId } = body
+  const { nama, grade, hargaJual, hargaModal, stokBagus, stokRusak, minStok, fotoUrl, kategoriId, supplierId } = body
 
   if (!nama || !grade || !hargaJual || !kategoriId) {
     return json(null, false, "Data tidak lengkap", 400)
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
     data: {
       nama, grade, hargaJual: Number(hargaJual), hargaModal: Number(hargaModal || 0),
       stokBagus: Number(stokBagus || 0), stokRusak: Number(stokRusak || 0),
-      minStok: Number(minStok || 5), kategoriId, supplierId: supplierId || null,
+      minStok: Number(minStok || 5), fotoUrl: fotoUrl || null, kategoriId, supplierId: supplierId || null,
     },
     include: { kategori: true, supplier: true },
   })

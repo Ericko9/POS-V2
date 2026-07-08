@@ -12,9 +12,10 @@ function createPrismaClient() {
   if (!connectionString) {
     console.warn("DATABASE_URL is not set!")
   }
+  const isLocal = connectionString?.includes("localhost") || connectionString?.includes("127.0.0.1")
   const pool = new Pool({ 
     connectionString, 
-    ssl: { rejectUnauthorized: false } 
+    ssl: isLocal ? false : { rejectUnauthorized: false } 
   })
   const adapter = new PrismaPg(pool)
   return new PrismaClient({ adapter })

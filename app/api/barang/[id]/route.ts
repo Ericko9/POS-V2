@@ -26,23 +26,48 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
 // PUT /api/barang/[id]
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth()
-  if (!session) return json(null, false, "Unauthorized", 401)
-  if ((session.user as { role?: string }).role !== "ADMIN") return json(null, false, "Forbidden", 403)
-  const { id } = await params
+  try {
+    const session = await auth()
+    if (!session) return json(null, false, "Unauthorized", 401)
+    if ((session.user as { role?: string }).role !== "ADMIN") return json(null, false, "Forbidden", 403)
+    const { id } = await params
 
-  const body = await req.json()
-  const barang = await prisma.barang.update({
-    where: { id },
-    data: {
-      nama: body.nama, grade: body.grade,
-      hargaJual: Number(body.hargaJual), hargaModal: Number(body.hargaModal),
-      stokBagus: Number(body.stokBagus), stokRusak: Number(body.stokRusak),
-      minStok: Number(body.minStok), kategoriId: body.kategoriId,
-      supplierId: body.supplierId || null,
-    },
-  })
-  return json(barang, true, "Barang berhasil diperbarui")
+    const body = await req.json()
+
+    const nama = body.nama
+    const grade = body.grade
+    const hargaJual = Number(body.hargaJual)
+    const hargaModal = Number(body.hargaModal || 0)
+    const stokBagus = Number(body.stokBagus || 0)
+    const stokRusak = Number(body.stokRusak || 0)
+    const minStok = Number(body.minStok || 5)
+    const fotoUrl = body.fotoUrl || null
+    const kategoriId = body.kategoriId
+    const supplierId = body.supplierId || null
+
+    if (!nama || !kategoriId) {
+      return json(null, false, "Nama dan Kategori wajib diisi", 400)
+    }
+
+    if (isNaN(hargaJual) || isNaN(hargaModal) || isNaN(stokBagus) || isNaN(stokRusak) || isNaN(minStok)) {
+      return json(null, false, "Format angka tidak valid", 400)
+    }
+
+    const barang = await prisma.barang.update({
+      where: { id },
+      data: {
+        nama, grade,
+        hargaJual, hargaModal,
+        stokBagus, stokRusak,
+        minStok, fotoUrl, kategoriId,
+        supplierId,
+      },
+    })
+    return json(barang, true, "Barang berhasil diperbarui")
+  } catch (error: any) {
+    console.error("PUT /api/barang/[id] Error:", error)
+    return json(null, false, error.message || "Internal Server Error", 500)
+  }
 }
 
 // DELETE /api/barang/[id]

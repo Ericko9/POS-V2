@@ -7,6 +7,7 @@ import { formatRupiah } from "@/lib/utils"
 
 interface Barang {
   id: string; nama: string; grade: string; hargaJual: number; stokBagus: number;
+  fotoUrl: string | null;
   promo: { diskon: number }[];
 }
 interface CartItem { barangId: string; nama: string; grade: string; hargaJual: number; diskon: number; jumlah: number }
@@ -73,9 +74,16 @@ export default function BuatNotaPage() {
             <div className="max-h-60 overflow-y-auto space-y-2">
               {filteredBarang.map(b => (
                 <div key={b.id} className="flex items-center justify-between p-3 rounded-xl bg-input border border-border hover:border-primary/30 transition-colors">
-                  <div>
-                    <p className="font-medium text-sm">{b.nama} <span className="badge-info ml-1">{b.grade}</span></p>
-                    <p className="text-xs text-muted">Stok: {b.stokBagus} · {formatRupiah(b.hargaJual)}{b.promo.length > 0 && <span className="text-success"> (-{formatRupiah(b.promo[0].diskon)})</span>}</p>
+                  <div className="flex items-center gap-3">
+                    {b.fotoUrl ? (
+                      <img src={b.fotoUrl} alt={b.nama} className="w-10 h-10 object-cover rounded-lg border border-border flex-shrink-0" />
+                    ) : (
+                      <div className="w-10 h-10 bg-muted rounded-lg border border-border flex items-center justify-center text-muted text-[10px] flex-shrink-0">No Pic</div>
+                    )}
+                    <div>
+                      <p className="font-medium text-sm">{b.nama} <span className="badge-info ml-1">{b.grade}</span></p>
+                      <p className="text-xs text-muted">Stok: {b.stokBagus} · {formatRupiah(b.hargaJual)}{b.promo.length > 0 && <span className="text-success"> (-{formatRupiah(b.promo[0].diskon)})</span>}</p>
+                    </div>
                   </div>
                   <button type="button" onClick={() => addToCart(b)} className="btn-secondary btn-sm" disabled={!!cart.find(c => c.barangId === b.id)}><Plus className="w-3 h-3" /></button>
                 </div>

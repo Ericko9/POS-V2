@@ -7,6 +7,7 @@ import { formatRupiah } from "@/lib/utils"
 interface Barang {
   id: string; nama: string; grade: string; hargaJual: number; hargaModal: number;
   stokBagus: number; stokRusak: number; minStok: number; jumlahTerjual: number;
+  fotoUrl: string | null;
   kategori: { nama: string }; supplier: { nama: string } | null;
   promo: { id: string; diskon: number; tanggalMulai: string; tanggalAkhir: string }[];
 }
@@ -59,6 +60,7 @@ export default function BarangPage() {
           <table className="table-base">
             <thead>
               <tr>
+                <th className="w-16">Foto</th>
                 <th>Nama</th><th>Grade</th><th>Kategori</th><th>Harga Jual</th>
                 <th>Stok</th><th>Terjual</th><th>Status</th>
               </tr>
@@ -66,6 +68,13 @@ export default function BarangPage() {
             <tbody>
               {barang.map((b) => (
                 <tr key={b.id}>
+                  <td>
+                    {b.fotoUrl ? (
+                      <img src={b.fotoUrl} alt={b.nama} className="w-10 h-10 object-cover rounded-lg border border-border" />
+                    ) : (
+                      <div className="w-10 h-10 bg-input rounded-lg border border-border flex items-center justify-center text-muted text-[10px]">No Pic</div>
+                    )}
+                  </td>
                   <td>
                     <Link href={`/barang/${b.id}`} className="text-primary hover:underline font-medium">{b.nama}</Link>
                     {b.promo.length > 0 && <span className="badge-success ml-2">Promo</span>}

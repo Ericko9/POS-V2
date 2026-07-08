@@ -78,6 +78,7 @@ model Barang {
   stokBagus     Int      @default(0)
   stokRusak     Int      @default(0)
   minStok       Int      @default(5)
+  fotoUrl       String?
   jumlahTerjual Int      @default(0)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
