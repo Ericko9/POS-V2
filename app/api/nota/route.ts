@@ -17,8 +17,9 @@ export async function GET(req: NextRequest) {
   const tanggalAkhir = searchParams.get("tanggalAkhir")
   const role = (session.user as { role?: string }).role
 
-  const where: Record<string, unknown> = {}
+  const where: Record<string, any> = {}
   if (role === "KASIR") where.kasirId = session.user.id
+  if (role === "KURIR") where.kurirId = session.user.id
   if (search) {
     where.OR = [
       { nomorNota: { contains: search, mode: "insensitive" } },

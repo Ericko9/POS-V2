@@ -27,6 +27,12 @@ const kasirMenus = [
   { href: "/profil", label: "Profil", icon: UserCircle },
 ]
 
+const kurirMenus = [
+  { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/nota", label: "Pengiriman", icon: Truck },
+  { href: "/profil", label: "Profil", icon: UserCircle },
+]
+
 interface SidebarProps {
   userName: string
   userRole: string
@@ -36,7 +42,7 @@ export default function Sidebar({ userName, userRole }: SidebarProps) {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
-  const menus = userRole === "ADMIN" ? adminMenus : kasirMenus
+  const menus = userRole === "ADMIN" ? adminMenus : userRole === "KURIR" ? kurirMenus : kasirMenus
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/"

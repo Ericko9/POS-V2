@@ -16,14 +16,15 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
   const data: Record<string, unknown> = {
     nama: body.nama, email: body.email, noHp: body.noHp, catatan: body.catatan,
+    role: body.role,
   }
   if (body.password) data.password = await bcrypt.hash(body.password, 12)
 
   const kasir = await prisma.user.update({
     where: { id }, data,
-    select: { id: true, nama: true, username: true, email: true, noHp: true, aktif: true },
+    select: { id: true, nama: true, username: true, email: true, noHp: true, role: true, aktif: true },
   })
-  return json(kasir, true, "Data kasir diperbarui")
+  return json(kasir, true, "Data staf diperbarui")
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

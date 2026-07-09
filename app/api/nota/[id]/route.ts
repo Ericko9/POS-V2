@@ -15,6 +15,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     where: { id },
     include: {
       kasir: { select: { nama: true } },
+      kurir: { select: { id: true, nama: true, noHp: true } },
       items: { include: { barang: { select: { nama: true, grade: true } } } },
       retur: { include: { items: { include: { barang: { select: { nama: true } } } } } },
     },

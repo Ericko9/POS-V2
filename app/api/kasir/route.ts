@@ -13,8 +13,8 @@ export async function GET() {
   if ((session.user as { role?: string }).role !== "ADMIN") return json(null, false, "Forbidden", 403)
 
   const kasir = await prisma.user.findMany({
-    where: { role: "KASIR" },
-    select: { id: true, nama: true, username: true, email: true, noHp: true, aktif: true, catatan: true, createdAt: true },
+    where: { role: { in: ["KASIR", "KURIR"] } },
+    select: { id: true, nama: true, username: true, email: true, noHp: true, role: true, aktif: true, catatan: true, createdAt: true },
     orderBy: { createdAt: "desc" },
   })
   return json(kasir)
@@ -26,17 +26,17 @@ export async function POST(req: NextRequest) {
   if ((session.user as { role?: string }).role !== "ADMIN") return json(null, false, "Forbidden", 403)
 
   const body = await req.json()
-  const { nama, username, password, email, noHp, catatan } = body
+  const { nama, username, password, email, noHp, catatan, role } = body
 
-  if (!nama || !username || !password) return json(null, false, "Data kasir tidak lengkap", 400)
+  if (!nama || !username || !password) return json(null, false, "Data staf tidak lengkap", 400)
 
   const existing = await prisma.user.findUnique({ where: { username } })
   if (existing) return json(null, false, "Username sudah digunakan", 400)
 
   const hashed = await bcrypt.hash(password, 12)
   const kasir = await prisma.user.create({
-    data: { nama, username, password: hashed, email, noHp, catatan, role: "KASIR" },
-    select: { id: true, nama: true, username: true, email: true, noHp: true, aktif: true, createdAt: true },
+    data: { nama, username, password: hashed, email, noHp, catatan, role: role === "KURIR" ? "KURIR" : "KASIR" },
+    select: { id: true, nama: true, username: true, email: true, noHp: true, role: true, aktif: true, createdAt: true },
   })
-  return json(kasir, true, "Kasir berhasil ditambahkan", 201)
+  return json(kasir, true, "Staf berhasil ditambahkan", 201)
 }

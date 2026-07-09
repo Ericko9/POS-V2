@@ -16,6 +16,7 @@ datasource db {
 enum Role {
   ADMIN
   KASIR
+  KURIR
 }
 
 enum KondisiRetur {
@@ -25,7 +26,8 @@ enum KondisiRetur {
 
 enum StatusPengiriman {
   BELUM_DIKIRIM
-  SUDAH_DIKIRIM
+  AKAN_DIKIRIM
+  SUDAH_SAMPAI
 }
 
 // ================================================================
@@ -45,7 +47,8 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  nota Nota[]
+  nota      Nota[] @relation("KasirNota")
+  kurirNota Nota[] @relation("KurirNota")
 }
 
 model Kategori {
@@ -117,7 +120,10 @@ model Nota {
   updatedAt        DateTime         @updatedAt
 
   kasirId String
-  kasir   User   @relation(fields: [kasirId], references: [id])
+  kasir   User   @relation("KasirNota", fields: [kasirId], references: [id])
+
+  kurirId String?
+  kurir   User?  @relation("KurirNota", fields: [kurirId], references: [id])
 
   items ItemNota[]
   retur Retur[]
@@ -164,4 +170,13 @@ model ProfilToko {
   noTelp    String?
   email     String?
   updatedAt DateTime @updatedAt
+}
+
+model WhatsappLog {
+  id        String   @id @default(cuid())
+  nomorNota String
+  noHp      String
+  pesan     String
+  status    String   // "SUCCESS" | "FAILED" | "SIMULATED"
+  createdAt DateTime @default(now())
 }

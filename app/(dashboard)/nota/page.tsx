@@ -14,6 +14,7 @@ export default function NotaPage() {
   const [data, setData] = useState<Nota[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
+  const [userRole, setUserRole] = useState<string>("")
 
   const fetchData = async () => {
     setLoading(true)
@@ -25,13 +26,32 @@ export default function NotaPage() {
     setLoading(false)
   }
 
-  useEffect(() => { fetchData() }, [])
+  const fetchUser = async () => {
+    const res = await fetch("/api/profil")
+    const json = await res.json()
+    if (json.success) setUserRole(json.data.user.role)
+  }
+
+  useEffect(() => {
+    fetchUser()
+    fetchData()
+  }, [])
 
   return (
     <div className="space-y-6 pt-12 lg:pt-0">
       <div className="page-header">
-        <div><h1 className="page-title flex items-center gap-2"><FileText className="w-7 h-7 text-primary" /> Nota Penjualan</h1><p className="page-subtitle">{data.length} nota</p></div>
-        <Link href="/nota/baru" className="btn-primary"><Plus className="w-4 h-4" /> Buat Nota</Link>
+        <div>
+          <h1 className="page-title flex items-center gap-2">
+            <FileText className="w-7 h-7 text-primary" /> 
+            {userRole === "KURIR" ? "Daftar Pengiriman" : "Nota Penjualan"}
+          </h1>
+          <p className="page-subtitle">{data.length} data</p>
+        </div>
+        {userRole !== "KURIR" && (
+          <Link href="/nota/baru" className="btn-primary">
+            <Plus className="w-4 h-4" /> Buat Nota
+          </Link>
+        )}
       </div>
 
       <div className="flex gap-3">
@@ -54,7 +74,15 @@ export default function NotaPage() {
                   <td><div><p className="font-medium">{n.namaPelanggan}</p>{n.noHpPelanggan && <p className="text-xs text-muted">{n.noHpPelanggan}</p>}</div></td>
                   <td><span className="badge-info">{n._count.items}</span>{n._count.retur > 0 && <span className="badge-warning ml-1">{n._count.retur} retur</span>}</td>
                   <td className="font-medium">{formatRupiah(n.totalHarga)}</td>
-                  <td>{n.statusPengiriman === "SUDAH_DIKIRIM" ? <span className="badge-success flex items-center gap-1 w-fit"><TruckIcon className="w-3 h-3" /> Dikirim</span> : <span className="badge-warning">Belum</span>}</td>
+                  <td>
+                    {n.statusPengiriman === "SUDAH_SAMPAI" ? (
+                      <span className="badge-success flex items-center gap-1 w-fit"><TruckIcon className="w-3 h-3" /> Sudah Sampai</span>
+                    ) : n.statusPengiriman === "AKAN_DIKIRIM" ? (
+                      <span className="badge-info flex items-center gap-1 w-fit"><TruckIcon className="w-3 h-3" /> Akan Dikirim</span>
+                    ) : (
+                      <span className="badge-warning">Belum Dikirim</span>
+                    )}
+                  </td>
                   <td className="text-muted-foreground text-sm">{n.kasir.nama}</td>
                   <td className="text-sm text-muted-foreground">{formatDateTime(n.createdAt)}</td>
                 </tr>
