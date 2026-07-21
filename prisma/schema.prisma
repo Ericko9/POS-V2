@@ -116,6 +116,7 @@ model Nota {
   catatan          String?
   totalHarga       Float
   statusPengiriman StatusPengiriman @default(BELUM_DIKIRIM)
+  fotoBuktiUrl     String?
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 

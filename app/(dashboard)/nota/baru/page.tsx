@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Plus, Trash2, Loader2, ShoppingCart } from "lucide-react"
+import { ArrowLeft, Plus, Trash2, Loader2, ShoppingCart, Truck } from "lucide-react"
 import Link from "next/link"
 import { formatRupiah } from "@/lib/utils"
 
@@ -11,17 +11,31 @@ interface Barang {
   promo: { diskon: number }[];
 }
 interface CartItem { barangId: string; nama: string; grade: string; hargaJual: number; diskon: number; jumlah: number }
+interface Courier { id: string; nama: string; noHp: string | null }
 
 export default function BuatNotaPage() {
   const router = useRouter()
   const [barangList, setBarangList] = useState<Barang[]>([])
+  const [couriers, setCouriers] = useState<Courier[]>([])
+  const [selectedKurirId, setSelectedKurirId] = useState<string>("")
   const [cart, setCart] = useState<CartItem[]>([])
   const [pelanggan, setPelanggan] = useState({ nama: "", noHp: "", alamat: "" })
   const [catatan, setCatatan] = useState("")
   const [loading, setLoading] = useState(false)
   const [searchBarang, setSearchBarang] = useState("")
+  const [userRole, setUserRole] = useState<string>("")
 
-  useEffect(() => { fetch("/api/barang").then(r => r.json()).then(d => d.success && setBarangList(d.data)) }, [])
+  useEffect(() => { 
+    fetch("/api/barang").then(r => r.json()).then(d => d.success && setBarangList(d.data))
+    fetch("/api/kurir").then(r => r.json()).then(d => d.success && setCouriers(d.data))
+    
+    // Fetch profile to check user role
+    fetch("/api/profil").then(r => r.json()).then(d => {
+      if (d.success && d.data.user) {
+        setUserRole(d.data.user.role)
+      }
+    })
+  }, [])
 
   const addToCart = (b: Barang) => {
     if (cart.find(c => c.barangId === b.id)) return
@@ -31,6 +45,10 @@ export default function BuatNotaPage() {
 
   const updateQty = (idx: number, qty: number) => {
     const newCart = [...cart]; newCart[idx].jumlah = Math.max(1, qty); setCart(newCart)
+  }
+
+  const updatePrice = (idx: number, price: number) => {
+    const newCart = [...cart]; newCart[idx].hargaJual = Math.max(0, price); setCart(newCart)
   }
 
   const removeItem = (idx: number) => setCart(cart.filter((_, i) => i !== idx))
@@ -45,7 +63,12 @@ export default function BuatNotaPage() {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         namaPelanggan: pelanggan.nama, noHpPelanggan: pelanggan.noHp, alamatPelanggan: pelanggan.alamat,
-        catatan, items: cart.map(c => ({ barangId: c.barangId, jumlah: c.jumlah })),
+        catatan, kurirId: selectedKurirId || null, 
+        items: cart.map(c => ({ 
+          barangId: c.barangId, 
+          jumlah: c.jumlah,
+          hargaSatuan: c.hargaJual // Send custom price (will be validated on server)
+        })),
       }),
     })
     const json = await res.json()
@@ -100,10 +123,31 @@ export default function BuatNotaPage() {
                   <div key={c.barangId} className="flex items-center justify-between p-3 rounded-xl bg-input border border-border">
                     <div className="flex-1">
                       <p className="font-medium text-sm">{c.nama} ({c.grade})</p>
-                      <p className="text-xs text-muted">{formatRupiah(c.hargaJual - c.diskon)} × {c.jumlah} = {formatRupiah((c.hargaJual - c.diskon) * c.jumlah)}</p>
+                      {/* Interactive Price Edit for Admin */}
+                      {userRole === "ADMIN" ? (
+                        <div className="flex items-center gap-1.5 mt-1">
+                          <span className="text-xs text-muted">Harga: Rp</span>
+                          <input
+                            type="number"
+                            min={0}
+                            value={c.hargaJual}
+                            onChange={e => updatePrice(i, Number(e.target.value))}
+                            className="input-field py-0.5 px-2 text-xs w-28 font-medium font-mono"
+                          />
+                          {c.diskon > 0 && (
+                            <span className="text-xs text-success">
+                              (disc: -{formatRupiah(c.diskon)})
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-muted">
+                          {formatRupiah(c.hargaJual - c.diskon)} × {c.jumlah} = {formatRupiah((c.hargaJual - c.diskon) * c.jumlah)}
+                        </p>
+                      )}
                     </div>
                     <div className="flex items-center gap-2">
-                      <input type="number" min={1} value={c.jumlah} onChange={e => updateQty(i, Number(e.target.value))} className="input-field w-16 text-center py-1" />
+                      <input type="number" min={1} value={c.jumlah} onChange={e => updateQty(i, Number(e.target.value))} className="input-field w-16 text-center py-1 font-mono" />
                       <button type="button" onClick={() => removeItem(i)} className="text-danger hover:bg-danger/10 p-1 rounded"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   </div>
@@ -117,7 +161,7 @@ export default function BuatNotaPage() {
           </div>
         </div>
 
-        {/* Customer info */}
+        {/* Customer info & Delivery assignment */}
         <div className="space-y-4">
           <div className="card space-y-3">
             <h2 className="font-semibold">Data Pelanggan</h2>
@@ -125,6 +169,24 @@ export default function BuatNotaPage() {
             <div><label className="label">No. HP</label><input className="input-field" value={pelanggan.noHp} onChange={e => setPelanggan(p => ({ ...p, noHp: e.target.value }))} /></div>
             <div><label className="label">Alamat</label><textarea className="input-field" rows={2} value={pelanggan.alamat} onChange={e => setPelanggan(p => ({ ...p, alamat: e.target.value }))} /></div>
             <div><label className="label">Catatan</label><textarea className="input-field" rows={2} value={catatan} onChange={e => setCatatan(e.target.value)} /></div>
+
+            <div className="pt-2 border-t border-border">
+              <label className="label flex items-center gap-1.5 font-medium text-foreground">
+                <Truck className="w-4 h-4 text-primary" /> Tugaskan Kurir (Opsional)
+              </label>
+              <select
+                className="input-field text-sm mt-1"
+                value={selectedKurirId}
+                onChange={e => setSelectedKurirId(e.target.value)}
+              >
+                <option value="">-- Belum Ditugaskan --</option>
+                {couriers.map(c => (
+                  <option key={c.id} value={c.id}>
+                    {c.nama} ({c.noHp || "No HP -"})
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
           <button type="submit" disabled={loading || cart.length === 0} className="btn-primary w-full btn-lg">
             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Simpan Nota"}

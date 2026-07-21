@@ -12,12 +12,13 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   if (!session) return json(null, false, "Unauthorized", 401)
 
   const { id } = await params
-  const { statusPengiriman, kurirId } = await req.json()
+  const { statusPengiriman, kurirId, fotoBuktiUrl } = await req.json()
 
   // Prepare update data
   const updateData: Record<string, unknown> = {}
   if (statusPengiriman !== undefined) updateData.statusPengiriman = statusPengiriman
   if (kurirId !== undefined) updateData.kurirId = kurirId
+  if (fotoBuktiUrl !== undefined) updateData.fotoBuktiUrl = fotoBuktiUrl
 
   // Update in database
   const updatedNota = await prisma.nota.update({
@@ -42,21 +43,31 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       
       const pesan = `Halo Kak *${updatedNota.namaPelanggan}*,
 
-Pesanan Anda dengan nomor nota *${updatedNota.nomorNota}* akan segera dikirim oleh Kurir kami: *${namaKurir}*${noHpKurir}.
-Mohon bersiap untuk menerima paket Anda.
+🚚 *PESANAN DALAM PERJALANAN*
+Pesanan Anda dengan nomor nota *${updatedNota.nomorNota}* sedang dalam perjalanan dikirim oleh Kurir kami: *${namaKurir}*${noHpKurir}.
 
-Terima kasih atas kepercayaan Anda belanja di *${namaToko}*! 🙏`
+Mohon bersiap untuk menerima paket Anda. Terima kasih telah berbelanja di *${namaToko}*! 🙏`
       
       await sendWhatsAppMessage(updatedNota.nomorNota, updatedNota.noHpPelanggan, pesan)
     } 
     else if (statusPengiriman === "SUDAH_SAMPAI") {
+      const buktiInfo = updatedNota.fotoBuktiUrl 
+        ? `\n\n📌 Bukti foto penerimaan dapat dilihat di: ${updatedNota.fotoBuktiUrl}` 
+        : ""
+      
       const pesan = `Halo Kak *${updatedNota.namaPelanggan}*,
 
-Kabar baik! Pesanan Anda dengan nomor nota *${updatedNota.nomorNota}* telah sampai ke tujuan dan diterima dengan baik oleh penerima.
+✅ *PESANAN TELAH DITERIMA*
+Kabar baik! Pesanan Anda dengan nomor nota *${updatedNota.nomorNota}* telah sampai ke tujuan dan diterima dengan baik.${buktiInfo}
 
 Terima kasih banyak telah berbelanja di *${namaToko}*. Sehat selalu! 🙏`
       
-      await sendWhatsAppMessage(updatedNota.nomorNota, updatedNota.noHpPelanggan, pesan)
+      await sendWhatsAppMessage(
+        updatedNota.nomorNota, 
+        updatedNota.noHpPelanggan, 
+        pesan, 
+        updatedNota.fotoBuktiUrl || undefined
+      )
     }
   }
 

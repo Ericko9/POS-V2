@@ -27,26 +27,33 @@ export function formatPhoneNumber(phone: string): string {
 export async function sendWhatsAppMessage(
   nomorNota: string,
   phone: string,
-  message: string
+  message: string,
+  imageUrl?: string
 ): Promise<{ success: boolean; status: string; info?: string }> {
   const formattedPhone = formatPhoneNumber(phone)
   const fonnteToken = process.env.FONNTE_TOKEN
 
   console.log(`[WhatsApp Helper] Preparing to send message to ${phone} (${formattedPhone}) for invoice ${nomorNota}`)
+  if (imageUrl) console.log(`[WhatsApp Helper] Image Attachment: ${imageUrl}`)
   console.log(`[WhatsApp Helper] Message Content:\n---\n${message}\n---`)
 
   if (fonnteToken) {
     try {
+      const payload: Record<string, unknown> = {
+        target: formattedPhone,
+        message: message,
+      }
+      if (imageUrl) {
+        payload.url = imageUrl
+      }
+
       const response = await fetch("https://api.fonnte.com/send", {
         method: "POST",
         headers: {
           Authorization: fonnteToken,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          target: formattedPhone,
-          message: message,
-        }),
+        body: JSON.stringify(payload),
       })
 
       const result = await response.json()

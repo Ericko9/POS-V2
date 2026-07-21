@@ -43,9 +43,10 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const session = await auth()
   if (!session) return json(null, false, "Unauthorized", 401)
+  const role = (session.user as { role?: string }).role
 
   const body = await req.json()
-  const { namaPelanggan, noHpPelanggan, alamatPelanggan, catatan, items } = body
+  const { namaPelanggan, noHpPelanggan, alamatPelanggan, catatan, items, kurirId } = body
 
   if (!namaPelanggan || !items || items.length === 0) {
     return json(null, false, "Data nota tidak lengkap", 400)
@@ -82,7 +83,7 @@ export async function POST(req: NextRequest) {
     if (!barang) continue
 
     const diskon = barang.promo.length > 0 ? barang.promo[0].diskon : 0
-    const hargaSatuan = barang.hargaJual
+    const hargaSatuan = (role === "ADMIN" && item.hargaSatuan !== undefined) ? Number(item.hargaSatuan) : barang.hargaJual
     const subtotal = (hargaSatuan - diskon) * item.jumlah
 
     itemsData.push({
@@ -98,6 +99,7 @@ export async function POST(req: NextRequest) {
       data: {
         nomorNota, namaPelanggan, noHpPelanggan, alamatPelanggan, catatan,
         totalHarga, kasirId: session.user.id,
+        kurirId: kurirId || null,
         items: { create: itemsData },
       },
       include: { items: true, kasir: { select: { nama: true } } },
